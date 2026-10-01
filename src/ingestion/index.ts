@@ -54,7 +54,7 @@ async function postRepo(repo: string) {
     });
 }
 
-function findRepoFolderName(repo: string) {
+export function findRepoFolderName(repo: string) {
     const parts = repo.split("/");
     const lastPart = parts[parts.length - 1] as string;
     return lastPart.replace(".git", "");
