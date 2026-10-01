@@ -26,7 +26,7 @@ export function buildCodeChunk(filePath: string, repoFolder: string, symbol: Cod
         symbolName: symbol.name,
         symbolType: symbol.type,
         parentSymbol: symbol.parent ?? null,
-        content: relatedLine,
+        content: relatedLine.trim(),
         startLine: symbol.startLine,
         endLine: symbol.endLine,
         startOffset: symbol.startOffset,
