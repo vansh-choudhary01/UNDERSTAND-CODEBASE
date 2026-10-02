@@ -76,7 +76,7 @@ export async function indexRepo(repo: string) {
 
     const EmbeddingObj = new EmbeddingEngine({ embed, embedBatch });
     const embeddings = await EmbeddingObj.embedTexts(codeChunks.map(chunk => chunk.content));
-    console.log(embeddings);
+    // console.log(embeddings);
 
     const records = codeChunks.map((item, i) => {
         const chunk = item;
@@ -119,7 +119,7 @@ export async function ask(query: string, repo: string) {
     // console.log(rrfResults)
     const context = buildContext(rrfResults, 8000);
     const response = await generateAns(query, context);
-    console.log(response);
+    // console.log(response);
     const res = JSON.parse(response);
     if ("newQuery" in res) {
         const newQuery = res.newQuery;
@@ -133,7 +133,7 @@ export async function ask(query: string, repo: string) {
 
         const newContext = buildContext(rrfResults, 8000);
         const response = await generateAns(query, newContext, context);
-        console.log(response);
+        // console.log(response);
         return JSON.parse(response);
     }
 
