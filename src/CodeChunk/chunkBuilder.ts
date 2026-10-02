@@ -21,7 +21,7 @@ export function buildCodeChunk(filePath: string, repoFolder: string, symbol: Cod
     const relatedLine = lines.slice(symbol.startLine - 1, symbol.endLine).join("\n");
 
     return {
-        id: `${filePath}::${symbol.type}::${symbol.name}${symbol.parent ? `::${symbol.parent}`: ``}`,
+        id: `${filePath}::${symbol.type}::${symbol.name}::${symbol.startLine}::${symbol.endLine}::${symbol.parent ? `::${symbol.parent}`: ``}`,
         filePath,
         symbolName: symbol.name,
         symbolType: symbol.type,

@@ -37,20 +37,39 @@ ${chunk.content}
 
 const openai = new OpenAI();
 
-export async function generateAns(query: string, context: string): Promise<string> {
+export async function generateAns(query: string, context: string, prevContext?: string): Promise<string> {
     const prompt = `
 You are an expert software engineer helping a developer understand a codebase.
 Use the provided context to answer the question.
+
+prevContext : ${prevContext ? `${prevContext}`: null}
 
 Context:
 ${context}
 
 Question: ${query}
 
-Answer:
+And please answer in proper markdown format with code blocks where necessary in json.
+Please prioritize accuracy and completeness in your response.
+If you cannot answer based on the context, please try to use a new query to find the best result from the vector db. and if prevContext is already availabe then you already tryed to fetch with newQuery then generate final response only.
+and response only in json format.
+{
+    "answer": "The answer to the question",
+    "confidence": 0.9,
+    "relevant_chunks": [
+        {
+            "file_path": "/path/to/file",
+            "symbol_name": "function_name",
+            "lines": "10-20",
+            "code": "code snippet"
+        }
+    ],
+} or {
+    "newQuery": "new query to find better results"
+}
 `;
 
-    return (await openai.chat.completions.create({
+    const responseStream = await openai.chat.completions.create({
         model: "gpt-4.1-nano-2025-04-14",
         messages: [
             {
@@ -59,9 +78,21 @@ Answer:
             }
         ],
         temperature: 0,
-        max_tokens: 512,
+        max_tokens: 8000,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
-    })).choices[0]?.message.content ?? "";
+        stream: true
+    });
+    let response = "";
+
+    for await (const part of responseStream) {
+        response += part.choices[0]?.delta.content || "";
+
+        if (part.choices[0]?.finish_reason) {
+            console.log(part.choices[0]?.finish_reason);
+        }
+    }
+
+    return response;
 }

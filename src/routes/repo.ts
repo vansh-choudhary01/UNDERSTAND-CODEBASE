@@ -2,7 +2,6 @@ import { Router } from "express";
 import z from "zod";
 import { ask, indexRepo } from "../index.js";
 import prisma from "../lib/prisma.js";
-import axios from "axios";
 
 const router = Router();
 
@@ -39,11 +38,15 @@ router.post("/indexRepo", async (req, res, next) => {
         const [, owner, repoName] = match;
         let apiUrl = `https://api.github.com/repos/${owner}/${repoName}`;
 
-        const githubRes = await axios.get(apiUrl);
+        // const response = await fetch(apiUrl);
 
-        if (githubRes.status !== 200) {
-            return res.status(400).json({ message: githubRes.data.message });
-        }
+        // if (response.status === 404) {
+        //     return res.status(404).json({ message: 'Repository not found. Please verify the URL is correct and the repository is public.' });
+        // }
+
+        // if (!response.ok) {
+        //     return res.status(500).json({ message: 'Failed to verify repository. Please try again.' });
+        // }
 
         apiUrl = `https://github.com/${owner}/${repoName}.git`
 
@@ -56,15 +59,27 @@ router.post("/indexRepo", async (req, res, next) => {
         if (exist) {
             return res.status(200).json({
                 success: true,
-                message: "Repository already indexed"
+                message: "Repository already indexed",
+                data: {
+                    owner,
+                    repoName,
+                    repository: apiUrl.replace(`https://api.github.com/repos/${owner}/${repoName}`, `https://github.com/${owner}/${repoName}.git`),
+                    workspacePath: `/${owner}/${repoName}`,
+                }
             })
         }
 
-        const repoRes = await indexRepo(apiUrl);
+        await indexRepo(apiUrl);
 
         return res.status(201).json({
             success: true,
-            data: repoRes
+            message: "Repository indexed successfully",
+            data: {
+                owner,
+                repoName,
+                repository: apiUrl,
+                workspacePath: `/${owner}/${repoName}`,
+            }
         })
     } catch (err) {
         next(err);
@@ -76,7 +91,7 @@ const askValidator = z.object({
     repo: z.string()
 })
 
-router.get("/ask", (req, res, next) => {
+router.get("/ask", async (req, res, next) => {
     try {
         const query = req.query;
 
@@ -91,10 +106,11 @@ router.get("/ask", (req, res, next) => {
 
         const { question, repo } = validate.data;
 
-        const answer = ask(question, repo);
+        const answer = await ask(question, repo);
 
         return res.status(200).json({
             success: true,
+            message: "Answer generated successfully",
             data: answer
         })
     } catch (err) {

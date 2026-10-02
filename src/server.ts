@@ -3,21 +3,31 @@ import path from "node:path";
 import routes from "./routes/repo.js";
 
 const app = express();
+const publicDir = path.resolve(process.cwd(), "public");
 
-app.use(express.static('public'));
+app.use(express.static(publicDir));
 
 app.get("/", (_req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'))
+    res.sendFile(path.join(publicDir, "index.html"));
 });
 
 app.use(express.json());
 
 app.use("/api", routes);
 
-app.use((err: Errback, req: Request, res: Response, next: NextFunction) => {
+app.get("/:owner/:repoName", (_req, res) => {
+    res.sendFile(path.join(publicDir, "repo.html"));
+});
+
+app.get("/:repoName", (_req, res) => {
+    res.sendFile(path.join(publicDir, "repo.html"));
+});
+
+app.use((err: Errback, _req: Request, res: Response, _next: NextFunction) => {
+    console.log(err);
     return res.status(500).json({
         success: false,
-        message: JSON.stringify(err)
+        message: err instanceof Error ? err.message : "Internal server error"
     })
 })
 

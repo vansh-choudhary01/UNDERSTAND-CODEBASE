@@ -19,8 +19,8 @@ export function search(query: string, topK: number, codeChunks: CodeChunk[]): { 
     });
 }
 
-export function BM25RetrivalSearch(query: string, topK: number, repo: string) {
-    const repoRes = prisma.repo.findFirst({
+export async function BM25RetrivalSearch(query: string, topK: number, repo: string) {
+    const repoRes = await prisma.repo.findFirst({
         where: {
             repository: repo
         },

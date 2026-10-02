@@ -86,26 +86,25 @@ export async function indexRepo(repo: string) {
             values: embeddings[i]!.embedding,
             metadata: {
                 repository: repo,
-                filePath: chunk.filePath,
-                symbolName: chunk.symbolName,
-                symbolType: chunk.symbolType,
-                parentSymbol: chunk.parentSymbol ?? "",
-
-                content: chunk.content,
-
-                startLine: chunk.startLine,
-                endLine: chunk.endLine,
-                startOffset: chunk.startOffset,
-                endOffset: chunk.endOffset,
             },
         };
     });
+
+    const indexPromises = [];
+    if (records.length > 100 ) {
+        for (let i = 0; i < records.length; i += 100) {
+            const batch = records.slice(i, i + 100);
+            indexPromises.push(index.upsert({ records: batch }));
+        }
+    } else {
+        indexPromises.push(index.upsert({ records: records }));
+    }
 
     await Promise.all([
         prisma.repo.create({
             data: createRepo
         }),
-        index.upsert({ records })
+        ...indexPromises
     ])
 }
 
@@ -119,5 +118,24 @@ export async function ask(query: string, repo: string) {
     const rrfResults = rrf(HybridRetriever.lexical, HybridRetriever.semantic, 10);
     // console.log(rrfResults)
     const context = buildContext(rrfResults, 8000);
-    return await generateAns(context, query);
+    const response = await generateAns(query, context);
+    console.log(response);
+    const res = JSON.parse(response);
+    if ("newQuery" in res) {
+        const newQuery = res.newQuery;
+        const [semantic, lexical] = await Promise.all([
+            vectorRetrivalSearch(newQuery, 20, repo),
+            BM25RetrivalSearch(newQuery, 20, repo),
+        ]);
+        const HybridRetriever = { lexical, semantic };
+
+        const rrfResults = rrf(HybridRetriever.lexical, HybridRetriever.semantic, 10);
+
+        const newContext = buildContext(rrfResults, 8000);
+        const response = await generateAns(query, newContext, context);
+        console.log(response);
+        return JSON.parse(response);
+    }
+
+    return res;
 }

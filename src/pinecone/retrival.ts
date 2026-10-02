@@ -1,5 +1,6 @@
 import type { SymbolType } from "../AST/astBuilder.js";
 import type { CodeChunk } from "../CodeChunk/chunkBuilder.js";
+import prisma from "../lib/prisma.js";
 import { embed } from "../OpenAi/embeddings.js";
 import { index } from "./vector.js";
 
@@ -14,18 +15,26 @@ export async function vectorRetrivalSearch(query: string, topK: number, repo: st
         }
     });
 
-    return res.matches.map((match) => {
+    const chunks = await prisma.codeChunk.findMany({
+        where: {
+            id: {
+                in: res.matches.map((match) => match.id)
+            }
+        }
+    });
+
+    return res.matches.map((match, i) => {
         const chunk: CodeChunk = {
-            id: match.id,
-            filePath: match.metadata?.filePath as string,
-            symbolName: match.metadata?.symbolName as string,
-            symbolType: match.metadata?.symbolType as SymbolType,
-            parentSymbol: match.metadata?.parentSymbol as string ?? null,
-            content: match.metadata?.content as string,
-            startLine: Number(match.metadata?.startLine),
-            endLine: Number(match.metadata?.endLine),
-            startOffset: Number(match.metadata?.startOffset),
-            endOffset: Number(match.metadata?.endOffset),
+            id: chunks[i]!.id,
+            filePath: chunks[i]?.filePath as string,
+            symbolName: chunks[i]?.symbolName as string,
+            symbolType: chunks[i]?.symbolType as SymbolType,
+            parentSymbol: chunks[i]?.parentSymbol as string ?? null,
+            content: chunks[i]?.content as string,
+            startLine: Number(chunks[i]?.startLine),
+            endLine: Number(chunks[i]?.endLine),
+            startOffset: Number(chunks[i]?.startOffset),
+            endOffset: Number(chunks[i]?.endOffset),
         };
         return {
             chunk,

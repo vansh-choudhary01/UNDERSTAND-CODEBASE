@@ -1,13 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Ask questions and explore an indexed repository with RepoTalk.">
+    <title>repoName · RepoTalk</title>
+    <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <script src="index.js"></script>
+    <div class="app-shell repo-page">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="RepoTalk home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14" />
+            </svg>
+          </span>
+          <span>RepoTalk</span>
+        </a>
+
+        <div class="topbar-actions">
+          <nav class="nav-links" aria-label="Main navigation">
+            <a href="/">Home</a>
+            <a id="repo-workspace-link" href="/" aria-current="page">Workspace</a>
+          </nav>
+          <span class="status">Indexed</span>
+        </div>
+      </header>
+
+      <header class="repo-header">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Repos</a>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <strong>repoName</strong>
+          </nav>
+
+          <div class="repo-title-row">
+            <div class="repo-title-wrap">
+              <span class="repo-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+                  <path d="M10 7h4M7 10v4M17 10v4M10 17h4" />
+                </svg>
+              </span>
+              <div class="repo-title">
+                <h1>repoName</h1>
+                <p><a id="repository-link" href="https://github.com" target="_blank" rel="noreferrer">github.com/owner/repoName</a> <span>·</span> Indexed recently</p>
+              </div>
+            </div>
+
+            <div class="repo-actions">
+              <a class="button button-quiet" href="/">New repository</a>
+              <a class="button" href="#ask-question">
+                Ask a question
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 12 14-7-4 14-3-6-7-1Z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="repo-layout">
+        <aside class="repo-sidebar" aria-label="Repository details">
+          <section class="sidebar-card">
+            <h2>Repository</h2>
+            <dl class="repo-meta">
+              <div><dt>Status</dt><dd>Ready</dd></div>
+              <div><dt>Source</dt><dd>GitHub</dd></div>
+              <div><dt>Files indexed</dt><dd>—</dd></div>
+              <div><dt>Last indexed</dt><dd>Recently</dd></div>
+            </dl>
+          </section>
+
+          <section class="sidebar-card">
+            <h2>Try asking</h2>
+            <div class="prompt-list">
+              <button class="prompt-button" type="button" data-question="How is the application structured?">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3v18M3 12h18" />
+                </svg>
+                <span>How is the application structured?</span>
+              </button>
+              <button class="prompt-button" type="button" data-question="Where does data enter the system?">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m4 12 5 5L20 6" />
+                </svg>
+                <span>Where does data enter the system?</span>
+              </button>
+              <button class="prompt-button" type="button" data-question="Explain the main request flow.">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 6v6l4 2" /><circle cx="12" cy="12" r="9" />
+                </svg>
+                <span>Explain the main request flow.</span>
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <section class="surface chat-panel" aria-labelledby="conversation-title">
+          <div class="chat-toolbar">
+            <div class="chat-toolbar-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.7 8.7 0 0 1-3-.5L4 20l1.5-4A7.5 7.5 0 1 1 20 11.5Z" />
+                <path d="M8 12h.01M12 12h.01M16 12h.01" />
+              </svg>
+              <span id="conversation-title">Repository conversation</span>
+            </div>
+            <span class="chat-toolbar-meta">Answers with source context</span>
+          </div>
+
+          <div class="messages">
+            <article class="message assistant">
+              <span class="message-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3 5 6v5c0 4.5 3 8.5 7 10 4-1.5 7-5.5 7-10V6l-7-3Z" />
+                  <path d="M9 12h6M12 9v6" />
+                </svg>
+              </span>
+              <div class="message-body">
+                <span class="message-label">RepoTalk</span>
+                <p class="message-copy">This workspace is ready. Ask about the repository’s architecture, implementation details, or how a feature moves through the code.</p>
+              </div>
+            </article>
+
+          </div>
+
+          <div class="composer-wrap" id="ask-question">
+            <form class="composer" id="question-form">
+              <input class="chat-input" id="question-input" type="text" placeholder="Ask anything about this repository..." aria-label="Ask a question about this repository" autocomplete="off">
+              <button class="send-button" id="send-button" type="submit" aria-label="Send question">
+                <span class="button-spinner" aria-hidden="true"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m5 12 14-7-4 14-3-6-7-1Z" />
+                </svg>
+              </button>
+            </form>
+            <p class="composer-note" id="ask-feedback" role="status" aria-live="polite">Answers are generated from the indexed repository context.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <div class="footer-inner">
+          <span>RepoTalk · <span class="repo-footer-name">repoName</span></span>
+          <nav class="footer-links" aria-label="Footer navigation">
+            <a href="/">All repositories</a>
+            <a href="#ask-question">Ask a question</a>
+          </nav>
+        </div>
+      </footer>
+    </div>
+    <script src="/repo.js" defer></script>
   </body>
 </html>
