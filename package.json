@@ -6,29 +6,33 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "postinstall": "prisma skills sync || exit 0"
   },
   "keywords": [],
   "type": "module",
   "devDependencies": {
-    "@types/node": "^26.6.3",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
     "@types/pg": "^8.23.1",
+    "prisma": "^6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
   "dependencies": {
     "@ast-grep/napi": "^0.45.3",
     "@pinecone-database/pinecone": "^9.0.0",
+    "@prisma/client": "^6.19.3",
     "@prisma/orm-extension-pgvector": "^8.0.0-rc.14",
     "@prisma/orm-postgres": "^8.0.0-rc.14",
     "axios": "^1.20.0",
     "child_process": "^1.0.2",
     "dotenv": "^18.0.5",
+    "express": "^5.2.1",
     "fast-bm25": "^0.0.6",
     "fs": "^0.0.1-security",
     "openai": "^7.25.0",
     "pg": "^8.23.1",
-    "prisma": "^8.0.0-rc.19"
+    "zod": "^4.6.5"
   }
 }

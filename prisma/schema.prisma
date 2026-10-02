@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Repo {
+  id  Int @id @default(autoincrement())
+  repository String
+  chunks CodeChunk[]
+}
+
+model CodeChunk {
+  id String @id
+  filePath String
+  symbolName String
+  symbolType String
+  parentSymbol String
+  content String
+  startLine Int
+  endLine Int
+  startOffset Int
+  endOffset Int
+  repoId Int
+
+  repo Repo @relation(fields: [repoId], references: [id])
+}

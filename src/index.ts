@@ -3,7 +3,7 @@ import { extractSymbols, type CodeSymbol } from "./AST/astBuilder.js";
 import { buildCodeChunks, type CodeChunk } from "./CodeChunk/chunkBuilder.js";
 import { findRepoFolderName, ingestRepo } from "./ingestion/index.js";
 import { parse, Lang } from "@ast-grep/napi";
-import { BM25Retriever } from "./BM25/retrival.js";
+// import { BM25Retriever } from "./BM25/retrival.js";
 import { EmbeddingEngine, type VectorRecord } from "./embeddings/EmbeddingEngine.js";
 import { embed, embedBatch } from "./OpenAi/embeddings.js";
 import dotenv from "dotenv";
@@ -11,11 +11,14 @@ import { index } from "./pinecone/vector.js";
 import { vectorRetrivalSearch } from "./pinecone/retrival.js";
 import { rrf } from "./RRF/retrival.js";
 import { buildContext, generateAns } from "./OpenAi/generation.js";
+import prisma from "./lib/prisma.js";
+import type { Prisma } from "./generated/prisma/client.js";
+import { BM25RetrivalSearch } from "./BM25/retrival.js";
 dotenv.config();
 
 const fileBasedSymbols: Record<string, CodeSymbol[]> = {};
 
-async function main(repo: string) {
+export async function indexRepo(repo: string) {
     const ingestionArray =
         (await ingestRepo(
             repo,
@@ -53,24 +56,36 @@ async function main(repo: string) {
     const codeChunks: CodeChunk[] = buildCodeChunks(fileBasedSymbols, "/repos/" + repoFolder);
     // console.log(codeChunks);
 
-    const BM25Obj = new BM25Retriever(codeChunks);
-    const chunks = BM25Obj.search("create a new todo", 10);
-    // console.log(chunks);
+    const createRepo: Prisma.RepoCreateInput = {
+        repository: repo,
+        chunks: {
+            create: [...codeChunks.map(chunk => ({
+                id: chunk.id,
+                filePath: chunk.filePath,
+                symbolName: chunk.symbolName,
+                symbolType: chunk.symbolType,
+                parentSymbol: chunk.parentSymbol ?? "",
+                content: chunk.content,
+                startLine: chunk.startLine,
+                endLine: chunk.endLine,
+                startOffset: chunk.startOffset,
+                endOffset: chunk.endOffset,
+            }))]
+        }
+    };
 
     const EmbeddingObj = new EmbeddingEngine({ embed, embedBatch });
-    const embeddings = await EmbeddingObj.embedTexts(chunks.map(chunk => chunk.chunk.content));
+    const embeddings = await EmbeddingObj.embedTexts(codeChunks.map(chunk => chunk.content));
     console.log(embeddings);
 
-    const records = chunks.map((item, i) => {
-        const chunk = item.chunk;
+    const records = codeChunks.map((item, i) => {
+        const chunk = item;
 
         return {
             id: chunk.id,
             values: embeddings[i]!.embedding,
             metadata: {
                 repository: repo,
-                branch: "main",
-
                 filePath: chunk.filePath,
                 symbolName: chunk.symbolName,
                 symbolType: chunk.symbolType,
@@ -86,19 +101,23 @@ async function main(repo: string) {
         };
     });
 
-    await index.upsert({records})
+    await Promise.all([
+        prisma.repo.create({
+            data: createRepo
+        }),
+        index.upsert({ records })
+    ])
+}
 
-    const query = "How to create a new todo";
+export async function ask(query: string, repo: string) {
     const [semantic, lexical] = await Promise.all([
         vectorRetrivalSearch(query, 20, repo),
-        BM25Obj.search(query, 20)
+        BM25RetrivalSearch(query, 20, repo),
     ]);
     const HybridRetriever = { lexical, semantic };
 
     const rrfResults = rrf(HybridRetriever.lexical, HybridRetriever.semantic, 10);
     // console.log(rrfResults)
     const context = buildContext(rrfResults, 8000);
-    console.log(await generateAns(context, query));
+    return await generateAns(context, query);
 }
-
-main("https://github.com/vansh-choudhary01/todo");

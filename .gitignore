@@ -7,3 +7,5 @@ prisma7.config.js
 prisma7.config.js.map
 prisma7.config.d.ts
 prisma7.config.d.ts.map
+
+/src/generated/prisma
