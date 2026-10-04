@@ -1,6 +1,13 @@
 import express, {type Request, type Response, type NextFunction, type Errback} from "express";
 import path from "node:path";
 import routes from "./routes/repo.js";
+import { verifyNeo4jConnection } from "./graph/neo4j.js";
+import dotenv from "dotenv";
+import { initializeGraphSchema } from "./graph/schema.js";
+dotenv.config();
+
+await verifyNeo4jConnection()
+await initializeGraphSchema();
 
 const app = express();
 const publicDir = path.resolve(process.cwd(), "public");

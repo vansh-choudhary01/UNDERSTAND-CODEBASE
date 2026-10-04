@@ -14,11 +14,14 @@ import { buildContext, generateAns } from "./OpenAi/generation.js";
 import prisma from "./lib/prisma.js";
 import type { Prisma } from "./generated/prisma/client.js";
 import { BM25RetrivalSearch } from "./BM25/retrival.js";
+import { buildFileSymbolGraph, buildImportRelationships, buildCallRelationships } from "./graph/graphBuilder.js";
+import { expandWithGraph, graphResultsToSearchResults } from "./graph/graphRetriever.js";
+import { extractCalls, type CodeCall } from "./parser/callExtractor.js";
 dotenv.config();
 
-const fileBasedSymbols: Record<string, CodeSymbol[]> = {};
-
 export async function indexRepo(repo: string) {
+    const fileBasedSymbols: Record<string, CodeSymbol[]> = {};
+    const calls: CodeCall[] = [];
     const ingestionArray =
         (await ingestRepo(
             repo,
@@ -38,6 +41,7 @@ export async function indexRepo(repo: string) {
             const symbols: CodeSymbol[] = [];
 
             extractSymbols(ast, symbols);
+            calls.push(...extractCalls(ast, file.path));
 
             fileBasedSymbols[file.path] = symbols;
         } catch (error) {
@@ -47,6 +51,11 @@ export async function indexRepo(repo: string) {
             );
         }
     }
+
+    await buildFileSymbolGraph(ingestionArray, fileBasedSymbols, repo);
+
+    await buildImportRelationships(fileBasedSymbols, repo);
+    await buildCallRelationships(calls, repo);
 
     // console.log(
     //     JSON.stringify(fileBasedSymbols, null, 2),
@@ -91,7 +100,7 @@ export async function indexRepo(repo: string) {
     });
 
     const indexPromises = [];
-    if (records.length > 100 ) {
+    if (records.length > 100) {
         for (let i = 0; i < records.length; i += 100) {
             const batch = records.slice(i, i + 100);
             indexPromises.push(index.upsert({ records: batch }));
@@ -115,9 +124,27 @@ export async function ask(query: string, repo: string) {
     ]);
     const HybridRetriever = { lexical, semantic };
 
-    const rrfResults = rrf(HybridRetriever.lexical, HybridRetriever.semantic, 10);
+    const hybridResults = rrf(HybridRetriever.lexical, HybridRetriever.semantic, 10);
+    const graphResults = await expandWithGraph(
+        hybridResults,
+        repo,
+    );
+
+    console.log(graphResults);
     // console.log(rrfResults)
-    const context = buildContext(rrfResults, 8000);
+
+    const graphSearchResults =
+        await graphResultsToSearchResults(
+            graphResults,
+            repo
+        );
+    console.log(graphSearchResults)
+    const finalResults = rrf(
+        hybridResults,
+        graphSearchResults,
+        10,
+    );
+    const context = buildContext(finalResults, 8000);
     const response = await generateAns(query, context);
     // console.log(response);
     const res = JSON.parse(response);
